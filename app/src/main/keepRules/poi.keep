@@ -1,0 +1,23 @@
+# Apache POI and its XML stack rely on reflection and ServiceLoader, which R8 can't see through.
+# Keep them intact and silence warnings for their optional (desktop/OSGi) deps that never load on
+# Android. R8 still strips everything else (Compose, Hilt, androidx, kotlin, app code) — that's the
+# size win here; POI itself stays whole so the xlsx/xls readers keep working.
+-keep class org.apache.poi.** { *; }
+# POI's IOUtils.<clinit> calls log4j's LogManager; keep log4j whole so its internal ServiceLoader
+# fallback (to SimpleLogger) still works under R8 instead of failing IOUtils' static init.
+-keep class org.apache.logging.log4j.** { *; }
+-keep class org.apache.xmlbeans.** { *; }
+-keep class org.openxmlformats.** { *; }
+-keep class com.microsoft.schemas.** { *; }
+-keep class schemaorg_apache_xmlbeans.** { *; }
+
+-dontwarn org.apache.poi.**
+-dontwarn org.apache.xmlbeans.**
+-dontwarn org.apache.logging.log4j.**
+-dontwarn org.openxmlformats.**
+-dontwarn com.microsoft.schemas.**
+-dontwarn java.awt.**
+-dontwarn javax.**
+-dontwarn org.w3c.dom.**
+-dontwarn aQute.bnd.**
+-dontwarn org.osgi.**

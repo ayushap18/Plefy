@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Unit-test-only override. LibraryViewModelTest initializes WorkManager with a synchronous
+        task executor for deterministic enqueue->run. Under Robolectric that executor runs on the
+        main thread, so WorkManager's on-init job reconciliation would hit its internal Room
+        WorkDatabase on the main thread and throw. Setting this flag makes WorkManager back its
+        WorkDatabase with an in-memory database that permits main-thread access, which is exactly
+        the supported test configuration. This lives in the `test` source set only, so it never
+        ships in the library AAR nor leaks into the app's merged resources.
+    -->
+    <bool name="workmanager_test_configuration">true</bool>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <!--
+            Unit-test-only: LibraryViewModelTest initializes WorkManager manually with a synchronous
+            executor (for deterministic enqueue->run). Remove the default androidx.startup
+            WorkManagerInitializer so it does not auto-initialize WorkManager first and cause the
+            manual WorkManager.initialize(...) to throw "already initialized".
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+    </application>
+
+</manifest>
