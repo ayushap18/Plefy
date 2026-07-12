@@ -15,7 +15,9 @@ android {
 
     defaultConfig {
         applicationId = "com.plefy.app"
-        minSdk = 33
+        // Android 8.0+ — java.time (used by the parser) is native at 26 and adaptive icons work,
+        // so no desugaring needed; covers ~95%+ of active devices.
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"

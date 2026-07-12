@@ -1,6 +1,5 @@
 package com.plefy.app.feature.importer
 
-import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -11,6 +10,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -238,6 +239,7 @@ private fun SwipeableSheetRow(
 
 /** A single sheet feature-card: leading tonal glyph, name, a badge-pill row, and trailing actions. */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun SheetRow(
     sheet: SheetTableEntity,
     onOpen: () -> Unit,
@@ -285,31 +287,34 @@ private fun SheetRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(6.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                // Metadata flows: pill + timestamp share a line when there's room, else the
+                // timestamp wraps to the next line — adapts to any screen width automatically.
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.secondary),
-                    )
-                    RowCountPill(count = sheet.rowCount)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.secondary),
+                        )
+                        RowCountPill(count = sheet.rowCount)
+                    }
                     Text(
                         text = relativeImportTime(sheet.importedAt),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.align(Alignment.CenterVertically),
                     )
                 }
             }
-
-            Text(
-                text = "Open",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable(onClick = onOpen),
-            )
 
             IconButton(onClick = onDelete) {
                 Icon(
@@ -333,6 +338,8 @@ private fun RowCountPill(count: Int) {
             text = "$count rows",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            softWrap = false,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
         )
     }
@@ -389,13 +396,16 @@ private fun EmptyState(onImport: () -> Unit) {
     }
 }
 
-/** Muted, human-readable "x ago" caption for an epoch-millis import timestamp. */
-private fun relativeImportTime(importedAt: Long): String =
-    DateUtils.getRelativeTimeSpanString(
-        importedAt,
-        System.currentTimeMillis(),
-        DateUtils.MINUTE_IN_MILLIS,
-    ).toString()
+/** Compact "x ago" caption (e.g. "5m ago", "3h ago", "2d ago") for an epoch-millis timestamp. */
+private fun relativeImportTime(importedAt: Long): String {
+    val minutes = (System.currentTimeMillis() - importedAt) / 60_000
+    return when {
+        minutes < 1 -> "just now"
+        minutes < 60 -> "${minutes}m ago"
+        minutes < 1_440 -> "${minutes / 60}h ago"
+        else -> "${minutes / 1_440}d ago"
+    }
+}
 
 /**
  * MIME types offered to the SAF picker. The wildcard type is included last so that providers which

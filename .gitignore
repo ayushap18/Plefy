@@ -16,3 +16,6 @@ local.properties
 
 # Gradle build outputs (all modules)
 build/
+
+# Transient adb bugreports
+bugreport-*.zip
